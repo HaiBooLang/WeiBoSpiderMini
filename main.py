@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import random
 import json
+import sys
 import time
 import requests
 import os
@@ -89,6 +90,9 @@ def get_picture(user_id, file_path):
                                 img_time = datetime.datetime.strptime(str(created_at),
                                                                       "%a %b %d %H:%M:%S %z %Y").strftime(
                                     "%Y-%m-%d-%H-%M-%S")
+                                # if img_time == latest_img_time:
+                                #     print('图片已经下载')
+                                #     sys.exit()
                                 img_name = img_time + '-' + str(i).zfill(3) + ".jpg"
                                 with open(file_path + img_name, 'ab') as f:
                                     f.write(img.content)
@@ -121,9 +125,23 @@ def log(file_path, str=""):
         f.write(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + '\n')
         f.write(str)
 
+def get_latest_file(directory):
+    latest_file = None
+    latest_date = datetime.datetime.min
+    for filename in os.listdir(directory):
+        if os.path.isfile(os.path.join(directory, filename)):
+            try:
+                file_date = datetime.datetime.strptime(filename[:19], "%Y-%m-%d-%H-%M-%S")
+                if file_date > latest_date:
+                    latest_file = filename
+                    latest_date = file_date
+            except ValueError:
+                pass
+    return latest_file
+
+
 
 if __name__ == "__main__":
-
     id = '2019071187'
     user_info = get_user_info(id)
     file_path = ".\\" + user_info["screen_name"] + "\\"
