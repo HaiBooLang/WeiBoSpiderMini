@@ -4,6 +4,7 @@ import json
 import time
 import requests
 import os
+import datetime
 
 
 def get_headers() -> dict:
@@ -53,7 +54,6 @@ def get_user_info(user_id) -> dict:
 
 
 def get_picture(user_id, file_path):
-    pic_num = 0
     page_num = 0
     url = 'https://m.weibo.cn/api/container/getIndex?type=uid&value=' + user_id
     weibo_url_prefix = url + '&containerid=' + get_container_id(url) + '&page='
@@ -82,15 +82,15 @@ def get_picture(user_id, file_path):
                             log(file_path, '******' + str(e) + '******' + '\n')
                         if mblog.get('pics') != None:
                             pics = mblog.get('pics')
-                            for _ in range(len(pics)):
-                                pic_num += 1
-                                print(pics[_]['large']['url'])
-                                imgurl = pics[_]['large']['url']
-                                img = requests.get(imgurl)
-                                with open(
-                                        file_path + str(pic_num) + ' ' + str(created_at).replace(":",
-                                                                                                 "_") + " " + ".jpg",
-                                        'ab') as f:
+                            for i in range(len(pics)):
+                                print(pics[i]['large']['url'])
+                                img_url = pics[i]['large']['url']
+                                img = requests.get(img_url)
+                                img_time = datetime.datetime.strptime(str(created_at),
+                                                                      "%a %b %d %H:%M:%S %z %Y").strftime(
+                                    "%Y-%m-%d-%H-%M-%S")
+                                img_name = img_time + '-' + str(i).zfill(3) + ".jpg"
+                                with open(file_path + img_name, 'ab') as f:
                                     f.write(img.content)
                         log(file_path,
                             "----第" + str(page_num) + "页，第" + str(card) + "条微博----" + "\n" +
@@ -100,11 +100,20 @@ def get_picture(user_id, file_path):
                             "点赞数：" + str(attitudes_count) + "\n" +
                             "评论数：" + str(comments_count) + "\n" +
                             "转发数：" + str(reposts_count) + "\n")
+                        markdown(file_path,
+                                 '# ' + img_time + '\n'
+                                                   '![](' + './' + img_name + ')'+'\n'
+                                 )
             else:
                 break
         except BaseException as e:
-            log(file_path, '******' + str(e) + '******' + '\n')
+            log(file_path, '\n'+'***error***: ' + str(e) +  '\n')
             pass
+
+
+def markdown(file_path, str=""):
+    with open(file_path + "weibo.md", 'a', encoding='utf-8') as f:
+        f.write(str)
 
 
 def log(file_path, str=""):
