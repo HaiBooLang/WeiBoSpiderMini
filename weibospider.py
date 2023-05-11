@@ -49,7 +49,7 @@ class WeiboSpider(object):
 
 
 
-    def get_weibo:
+    # def get_weibo:
 
 
     def get_picture_info(self):
@@ -57,9 +57,40 @@ class WeiboSpider(object):
         for i in range(0, self.page_count):
             weibo_url = weibo_url_prefix + str(i)
             try:
-                data = get_data(weibo_url)
+                data = self.get_data(weibo_url)
                 content = json.loads(data).get('data')
                 cards = content.get('cards')
+                cards = content.get('cards')
+                if len(cards) > 0:
+                    for card in range(len(cards)):
+                        print("-----正在爬取第" + str(page_num) + "页，第" + str(card) + "条微博------")
+                        card_type = cards[card].get('card_type')
+                        if card_type == 9:
+                            try:
+                                mblog = cards[card].get('mblog')
+                                scheme = cards[card].get('scheme')
+                                created_at = mblog.get('created_at')
+                                text = mblog.get('text')
+                                reposts_count = mblog.get('reposts_count')
+                                comments_count = mblog.get('comments_count')
+                                attitudes_count = mblog.get('attitudes_count')
+                            except BaseException as e:
+                                log(file_path, '******' + str(e) + '******' + '\n')
+                            if mblog.get('pics') != None:
+                                pics = mblog.get('pics')
+                                for i in range(len(pics)):
+                                    print(pics[i]['large']['url'])
+                                    img_url = pics[i]['large']['url']
+                                    img = requests.get(img_url)
+                                    img_time = datetime.datetime.strptime(str(created_at),
+                                                                      "%a %b %d %H:%M:%S %z %Y").strftime(
+                                    "%Y-%m-%d-%H-%M-%S")
+                                # if img_time == latest_img_time:
+                                #     print('图片已经下载')
+                                #     sys.exit()
+                                    img_name = img_time + '-' + str(i).zfill(3) + ".jpg"
+                                    with open(file_path + img_name, 'ab') as f:
+                                        f.write(img.content)
 
 
 
